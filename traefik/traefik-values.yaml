@@ -1,0 +1,111 @@
+# Configure Network Ports and EntryPoints
+# EntryPoints are the network listeners for incoming traffic.
+ports:
+  # Defines the HTTP entry point named 'web'
+  web:
+    # Instructs this entry point to redirect all traffic to the 'websecure' entry point
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+
+  # Defines the HTTPS entry point named 'websecure'
+  websecure:
+    tls:
+      enabled: true
+      # certResolver: ovh
+
+deployment:
+  replicas: 3
+
+
+persistence:
+  enabled: false
+  name: data
+  size: 1Gi
+  storageClass: ""
+
+
+# Enables the dashboard in Secure Mode
+api:
+  dashboard: true
+  insecure: false
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`traefik.kubernetes.giuseppebosa.eu`)
+    entryPoints:
+      - web
+      - websecure
+    tls:
+      secretName: traefik-dashboard-certificate
+    middlewares:
+      - name: auth
+
+# Creates a BasiAuth Middleware and Secret for general Security
+extraObjects:
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: auth
+    spec:
+      basicAuth:
+        secret: auth-secret
+
+ingressClass:
+  enabled: true
+
+# Enable Gateway API Provider & Disables the KubernetesIngress provider
+# Providers tell Traefik where to find routing configuration.
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+  kubernetesIngress:
+     enabled: true
+  kubernetesGateway:
+     enabled: false
+
+# Enable Observability
+logs:
+  general:
+    level: DEBUG
+  # This enables access logs, outputting them to Traefik's standard output by default. The [Access Logs Documentation](https://doc.traefik.io/traefik/observability/access-logs/) covers formatting, filtering, and output options.
+  access:
+    enabled: true
+
+# Enables Prometheus for Metrics
+metrics:
+  prometheus:
+    enabled: true
+
+# https://doc.traefik.io/traefik/setup/kubernetes/#tls-certificate-management-lets-encrypt
+
+# additionalArguments:
+#   - "--certificatesresolvers.ovh.acme.storage=/data/acme.json"
+#   - "--certificatesresolvers.ovh.acme.dnschallenge.provider=ovh"
+#   - "--certificatesresolvers.ovh.acme.email=bosius00@gmail.com"
+
+env:
+  - name: OVH_APPLICATION_KEY
+    valueFrom:
+      secretKeyRef:
+        key: application-key
+        name: ovh-credentials
+  - name: OVH_APPLICATION_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: application-secret
+        name: ovh-credentials
+  - name: OVH_CONSUMER_KEY
+    valueFrom:
+      secretKeyRef:
+        key: consumer-key
+        name: ovh-credentials
+  - name: OVH_ENDPOINT
+    value: ovh-ca
+
+podSecurityContext:
+  fsGroup: 65532

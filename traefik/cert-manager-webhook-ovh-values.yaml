@@ -1,0 +1,86 @@
+# The `configVersion` is used to assist with breaking changes before an upgrade
+# is applied.
+# Each time breaking change are introduced, the internal `configVersion` is
+# increased. If the user doesn't set the correct `configVersion` in their
+# `values.yaml` indicating they have performed the required configuration
+# changes, the new Chart version won't be installed preventing any outages.
+# The latest `values.yaml` contains the correct `configVersion` but the line is
+# commented. The latest `values.yaml` can be retrieved with the command below:
+#    helm show values cert-manager-webhook-ovh-charts/cert-manager-webhook-ovh
+configVersion: 0.0.2
+
+# The GroupName here is used to identify your company or business unit that
+# created this webhook.
+# For example, this may be "acme.mycompany.example".
+# This name will need to be referenced in each Issuer's `webhook` stanza to
+# inform cert-manager of where to send ChallengePayload resources in order to
+# solve the DNS01 challenge.
+# This group name should be **unique**, hence using your own company's domain
+# here is recommended.
+groupName: acme.kubernetes.giuseppebosa.eu
+
+# The values below should match your cert-manager deployment.
+# If not, you will get permissions errors.
+certManager:
+  # namespace in which your cert-manager is deployed
+  namespace: cert-manager
+  # cert-manager serverAccount name (default: cert-manager)
+  serviceAccountName: cert-manager
+
+# One or more issuers to create
+issuers:
+  # Name of this issuer
+  - name: le-prod
+    # When true this issuer is created.
+    # This is disabled by default
+    create: true
+
+    # Type of issuer. Can either be ClusterIssuer or Issuer.
+    # If issuer is specified, the namespace is required.
+    # See for more information https://cert-manager.io/docs/concepts/issuer/
+    kind: ClusterIssuer
+
+    # If kind is issuer, then indicate the namespace in which this
+    # issuer should be deployed into.
+    namespace: default
+
+    # Follow CNAME records or not. 2 options:
+    # - None (default): Don't follow CNAME records
+    # - Follow: Follow CNAME records
+    # See https://cert-manager.io/docs/configuration/acme/dns01/#delegated-domains-for-dns01 for more information
+    cnameStrategy: None
+
+    # The acme server url. For Let's encrypt, you have 2 options:
+    # - for production (default): https://acme-v02.api.letsencrypt.org/directory
+    # - for staging: https://acme-staging-v02.api.letsencrypt.org/directory
+    acmeServerUrl: https://acme-v02.api.letsencrypt.org/directory
+
+    # email to use when registrering your account with Let's encrypt.
+    email: bosius00@gmail.com
+
+    ovhEndpointName: ovh-ca
+
+    # Authentication method (possible values: application or oauth2)
+    ovhAuthenticationMethod: application
+    ovhAuthenticationRef:
+
+    # The secret reference to an existing OVH application key.
+      applicationKeyRef:
+        # Name of the Kubernetes secret containing the OVH Application Key
+        name: ovh-credentials
+        # The key name in the secret above that holds the actual OVH application key value
+        key: applicationKey
+  
+      # The secret reference to an existing OVH application secret.
+      applicationSecretRef:
+        # Name of the Kubernetes secret containing the OVH Application Secret
+        name: ovh-credentials-secret
+        # The key name in the secret above that holds the actual OVH application secret value
+        key: applicationSecret
+  
+      # The secret reference to an existing OVH consumer key
+      applicationConsumerKeyRef:
+        # Name of the Kubernetes secret containing the OVH consumer Key
+        name: ovh-credentials
+        # The key name in the secret above that holds the actual OVH consumer key value
+        key: applicationConsumerKey
