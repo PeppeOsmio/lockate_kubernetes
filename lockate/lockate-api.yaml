@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lockate-api
+  namespace: lockate
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lockate-api
+  template:
+    metadata:
+      labels:
+        app: lockate-api
+    spec:
+      imagePullSecrets:
+        - name: harbor-credentials
+      containers:
+        - name: api
+          image: harbor.kubernetes.giuseppebosa.eu/lockate/lockate:latest
+          imagePullPolicy: Always
+          command: ["java", "-jar", "lockate.jar", "--spring.profiles.active=api"]
+          env:
+            - name: DB_URL
+              value: "postgresql://cnpg-cluster-rw.lockate.svc.cluster.local:5432/lockate"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            - name: REDIS_HOST
+              value: valkey.lockate.svc.cluster.local
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: valkey-password
+                  key: password
+            - name: REQUIRE_API_KEY
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lockate-api
+  namespace: lockate
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3118
+      targetPort: 3118
+  selector:
+    app: lockate-api
+

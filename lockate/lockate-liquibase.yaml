@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lockate-liquibase
+  namespace: lockate
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: harbor-credentials
+      containers:
+        - name: liquibase
+          image: harbor.kubernetes.giuseppebosa.eu/lockate/lockate-liquibase:latest
+          imagePullPolicy: Always
+          env:
+            - name: LIQUIBASE_COMMAND_URL
+              value: "jdbc:postgresql://cnpg-cluster-rw.lockate.svc.cluster.local:5432/lockate"
+            - name: LIQUIBASE_COMMAND_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: LIQUIBASE_COMMAND_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            - name: LIQUIBASE_COMMAND_CHANGELOG_FILE
+              value: "changelog/db.changelog-master.yaml"

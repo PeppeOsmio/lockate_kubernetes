@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lockate-ingressroute
+  namespace: lockate
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`lockate.kubernetes.giuseppebosa.eu`)
+      kind: Rule
+      services:
+        - name: lockate-api
+          port: 3118
+  tls:
+    secretName: lockate-certificate

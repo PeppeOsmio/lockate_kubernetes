@@ -13,10 +13,12 @@ spec:
       services:
         - name: harbor-portal
           port: 80
-    - match: Host(`registry.kubernetes.giuseppebosa.eu`)
+    - match: |
+        Host(`harbor.kubernetes.giuseppebosa.eu`) && (PathPrefix(`/api/`) || PathPrefix(`/service/`) || PathPrefix(`/v2/`) || PathPrefix(`/chartrepo/`) || PathPrefix(`/c/`))
       kind: Rule
       services:
-        - name: harbor-registry
-          port: 5000
+        - name: harbor-core
+          port: 80
+
   tls:
     secretName: harbor-certificate
