@@ -14,7 +14,7 @@ ports:
   websecure:
     tls:
       enabled: true
-      # certResolver: ovh
+
 
 deployment:
   replicas: 3
@@ -88,24 +88,6 @@ metrics:
 #   - "--certificatesresolvers.ovh.acme.dnschallenge.provider=ovh"
 #   - "--certificatesresolvers.ovh.acme.email=bosius00@gmail.com"
 
-env:
-  - name: OVH_APPLICATION_KEY
-    valueFrom:
-      secretKeyRef:
-        key: application-key
-        name: ovh-credentials
-  - name: OVH_APPLICATION_SECRET
-    valueFrom:
-      secretKeyRef:
-        key: application-secret
-        name: ovh-credentials
-  - name: OVH_CONSUMER_KEY
-    valueFrom:
-      secretKeyRef:
-        key: consumer-key
-        name: ovh-credentials
-  - name: OVH_ENDPOINT
-    value: ovh-ca
 
 podSecurityContext:
   fsGroup: 65532
