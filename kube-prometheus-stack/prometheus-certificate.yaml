@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: prometheus-certificate
+  namespace: kube-prometheus-stack
+spec:
+  dnsNames:
+    - "prometheus.kubernetes.giuseppebosa.eu"
+  issuerRef:
+    name: le-prod
+    kind: ClusterIssuer
+  secretName: prometheus-certificate
